@@ -1,0 +1,1545 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Monopoly — Modern Polished (Houses + Emoji Tokens)</title>
+    <style>
+        :root {
+            --bg: #eaf3ff;
+            --panel: #ffffff;
+            --muted: #6b7a90;
+            --accent: #2b6cff;
+            --board-size: 950px;
+            --cell: 80px;
+            --glass: rgba(255, 255, 255, 0.6);
+            --card-shadow: 0 10px 30px rgba(12, 40, 90, 0.08);
+            --radius: 12px;
+            --text: #10203a;
+        }
+
+        [data-theme="dark"] {
+            --bg: #071022;
+            --panel: linear-gradient(180deg, #071428, #081823);
+            --muted: #9aa9bf;
+            --accent: #4ea3ff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --card-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+            --text: #e8f0ff;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: linear-gradient(180deg, var(--bg), rgba(255, 255, 255, 0));
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding: 18px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app {
+            width: min(1500px, 100%);
+            display: grid;
+            grid-template-columns: calc(var(--board-size) + 20px) 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .boardWrap {
+            background: var(--panel);
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .topBar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title {
+            font-weight: 800;
+            font-size: 18px
+        }
+
+        .controlsInline {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 0;
+            background: var(--accent);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(43, 108, 255, 0.12);
+        }
+
+        .btn.secondary {
+            background: #6f86b6
+        }
+
+        .btn.ghost {
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            color: var(--text);
+            font-weight: 600
+        }
+
+        .btn.warn {
+            background: #ff7b5c
+        }
+
+        .btn.small {
+            padding: 6px 8px;
+            font-size: 13px;
+            border-radius: 8px
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .board {
+            width: var(--board-size);
+            height: var(--board-size);
+            display: grid;
+            grid-template-columns: repeat(11, var(--cell));
+            grid-template-rows: repeat(11, var(--cell));
+            gap: 4px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 6px solid rgba(255, 255, 255, 0.6);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.01));
+        }
+
+        .cell {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.95));
+            border-radius: 8px;
+            border: 1px solid rgba(8, 30, 60, 0.06);
+            position: relative;
+            padding: 6px;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 4px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        [data-theme="dark"] .cell {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .corner {
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center
+        }
+
+        .property-bar {
+            height: 18px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.04)
+        }
+
+        .tokens {
+            position: absolute;
+            left: 8px;
+            bottom: 8px;
+            display: flex;
+            gap: 6px;
+            z-index: 5
+        }
+
+        .token {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 0 6px 14px rgba(11, 38, 80, 0.12)
+        }
+
+        .houseRow {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            align-items: flex-end
+        }
+
+        .houseEmoji {
+            font-size: 14px;
+            line-height: 12px
+        }
+
+        .hud {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .panel {
+            background: var(--panel);
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow)
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+            flex-wrap: wrap
+        }
+
+        .playerCard {
+            border-radius: 10px;
+            padding: 12px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.35))
+        }
+
+        input[type=number],
+        select,
+        input[type=text],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            background: transparent;
+            color: var(--text)
+        }
+
+        #log {
+            height: 220px;
+            overflow: auto;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.95))
+        }
+
+        [data-theme="dark"] #log {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.03)
+        }
+
+        .players-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.95))
+        }
+
+        .muted-small {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .modal {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(2, 6, 23, 0.45);
+            z-index: 60
+        }
+
+        .modalCard {
+            width: 760px;
+            max-width: 96%;
+            background: var(--panel);
+            padding: 18px;
+            border-radius: 12px
+        }
+
+        .form-row {
+            display: flex;
+            gap: 8px
+        }
+
+        .flex {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .center {
+            text-align: center
+        }
+
+        .small-muted {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .prop-slim {
+            font-size: 12px;
+            padding: 6px;
+            border-radius: 8px;
+            background: #f7fbff;
+            border: 1px solid #e6f0ff;
+            display: block;
+            margin-bottom: 6px
+        }
+
+        .hidden {
+            display: none
+        }
+
+        @media (max-width:1250px) {
+            .app {
+                grid-template-columns: 1fr;
+                align-items: stretch
+            }
+
+            .board {
+                width: 96vw;
+                height: 96vw;
+                --cell: calc((96vw - 40px) / 11)
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app" id="appRoot" data-theme="">
+        <div class="boardWrap panel">
+            <div class="topBar">
+                <div>
+                    <div class="title">Monopoly — Modern Polished</div>
+                    <div class="muted">Emoji tokens • Houses & Hotels • ₹ currency</div>
+                </div>
+                <div class="controlsInline">
+                    <label class="muted-small">Theme</label>
+                    <button id="themeToggle" class="btn small">Toggle</button>
+                    <label class="muted-small">Players</label>
+                    <button id="openSetup" class="btn small secondary">Setup / Rename</button>
+                    <button id="resetBtn" class="btn small ghost">Reset</button>
+                </div>
+            </div>
+
+            <div id="board" class="board" aria-hidden="false"></div>
+
+            <div style="display:flex;justify-content:space-between;gap:8px;margin-top:8px">
+                <div class="muted-small">Tip: Click any square for details. Build houses when you own a full color set.
+                </div>
+                <div class="muted-small">Houses cost 50% of property price each. 4 houses → hotel.</div>
+            </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="panel playerCard">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div><span class="muted-small">Turn</span>
+                        <div style="font-weight:800;font-size:16px" id="currentName">—</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div class="muted-small">Dice</div>
+                        <div style="font-weight:800;font-size:16px" id="diceDisplay">—</div>
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top:12px">
+                    <button id="rollBtn" class="btn">Roll Dice</button>
+                    <button id="endTurnBtn" class="btn secondary" disabled>End Turn</button>
+                    <button id="auctionBtn" class="btn ghost" disabled>Open Auction</button>
+                    <button id="sellPropBtn" class="btn warn">Sell Property</button>
+                </div>
+
+                <div style="display:flex;gap:8px;margin-top:10px">
+                    <div style="flex:1">
+                        <label class="muted-small">Starting money</label>
+                        <input id="startMoney" type="number" value="1500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3 style="margin:0 0 8px 0">Players</h3>
+                <div id="playersList" class="players-list"></div>
+            </div>
+
+            <div class="panel">
+                <h3 style="margin:0 0 8px 0">Trade · Mortgage · Loans</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <div>
+                        <label class="muted-small">From player</label>
+                        <select id="fromPlayer"></select>
+                        <div id="offerProps"></div>
+                        <label class="muted-small">Offer money (₹)</label>
+                        <input type="number" id="offerMoney" value="0">
+                    </div>
+
+                    <div>
+                        <label class="muted-small">To player</label>
+                        <select id="toPlayer"></select>
+                        <div id="requestProps"></div>
+                        <label class="muted-small">Request money (₹)</label>
+                        <input type="number" id="requestMoney" value="0">
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <button id="proposeTradeBtn" class="btn">Propose Trade</button>
+                    <button id="mortgageBtn" class="btn ghost">Mortgage</button>
+                    <button id="unmortgageBtn" class="btn ghost">Unmortgage</button>
+                    <button id="giveLoanBtn" class="btn ghost">Give Loan</button>
+                </div>
+
+                <div style="margin-top:10px" class="loanBubble">
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <label class="muted-small" style="width:90px">Bank Loan</label>
+                        <select id="loanPlayer"></select>
+                        <input type="number" id="loanRequestAmount" value="500">
+                        <select id="loanTerm">
+                            <option>3</option>
+                            <option selected>5</option>
+                            <option>8</option>
+                        </select>
+                        <button id="requestBankLoanBtn" class="btn small">Request</button>
+                    </div>
+                    <div id="bankLoansList" style="margin-top:8px"></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3 style="margin:0 0 8px 0">Game Log</h3>
+                <div id="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalRoot"></div>
+
+    <script>
+        // ---------- Core data ----------
+        const baseBoard = [
+            { type: 'corner', name: 'GO' },
+            { type: 'property', name: 'Mediterranean Ave', color: '#8b5a2b', price: 60, rents: [2, 10, 30, 90, 160, 250] },
+            { type: 'community', name: 'Community Chest' },
+            { type: 'property', name: 'Baltic Ave', color: '#8b5a2b', price: 60, rents: [4, 20, 60, 180, 320, 450] },
+            { type: 'tax', name: 'Income Tax', amount: 200 },
+            { type: 'railroad', name: 'Reading Railroad', price: 200 },
+            { type: 'property', name: 'Oriental Ave', color: '#56b7ff', price: 100, rents: [6, 30, 90, 270, 400, 550] },
+            { type: 'chance', name: 'Chance' },
+            { type: 'property', name: 'Vermont Ave', color: '#56b7ff', price: 100, rents: [6, 30, 90, 270, 400, 550] },
+            { type: 'property', name: 'Connecticut Ave', color: '#56b7ff', price: 120, rents: [8, 40, 100, 300, 450, 600] },
+            { type: 'corner', name: 'Jail' },
+            { type: 'property', name: 'St. Charles Place', color: '#ff79b0', price: 140, rents: [10, 50, 150, 450, 625, 750] },
+            { type: 'utility', name: 'Electric Company', price: 150 },
+            { type: 'property', name: 'States Ave', color: '#ff79b0', price: 140, rents: [10, 50, 150, 450, 625, 750] },
+            { type: 'property', name: 'Virginia Ave', color: '#ff79b0', price: 160, rents: [12, 60, 180, 500, 700, 900] },
+            { type: 'railroad', name: 'Pennsylvania Railroad', price: 200 },
+            { type: 'property', name: 'St. James Place', color: '#ffb86b', price: 180, rents: [14, 70, 200, 550, 750, 950] },
+            { type: 'community', name: 'Community Chest' },
+            { type: 'property', name: 'Tennessee Ave', color: '#ffb86b', price: 180, rents: [14, 70, 200, 550, 750, 950] },
+            { type: 'property', name: 'New York Ave', color: '#ffb86b', price: 200, rents: [16, 80, 220, 600, 800, 1000] },
+            { type: 'corner', name: 'Free Parking' },
+            { type: 'property', name: 'Kentucky Ave', color: '#e63946', price: 220, rents: [18, 90, 250, 700, 875, 1050] },
+            { type: 'chance', name: 'Chance' },
+            { type: 'property', name: 'Indiana Ave', color: '#e63946', price: 220, rents: [18, 90, 250, 700, 875, 1050] },
+            { type: 'property', name: 'Illinois Ave', color: '#e63946', price: 240, rents: [20, 100, 300, 750, 925, 1100] },
+            { type: 'railroad', name: 'B. & O. Railroad', price: 200 },
+            { type: 'property', name: 'Atlantic Ave', color: '#ffd166', price: 260, rents: [22, 110, 330, 800, 975, 1150] },
+            { type: 'property', name: 'Ventnor Ave', color: '#ffd166', price: 260, rents: [22, 110, 330, 800, 975, 1150] },
+            { type: 'utility', name: 'Water Works', price: 150 },
+            { type: 'property', name: 'Marvin Gardens', color: '#ffd166', price: 280, rents: [24, 120, 360, 850, 1025, 1200] },
+            { type: 'corner', name: 'Go To Jail' },
+            { type: 'property', name: 'Pacific Ave', color: '#2ecc71', price: 300, rents: [26, 130, 390, 900, 1100, 1275] },
+            { type: 'property', name: 'North Carolina Ave', color: '#2ecc71', price: 300, rents: [26, 130, 390, 900, 1100, 1275] },
+            { type: 'community', name: 'Community Chest' },
+            { type: 'property', name: 'Pennsylvania Ave', color: '#2ecc71', price: 320, rents: [28, 150, 450, 1000, 1200, 1400] },
+            { type: 'railroad', name: 'Short Line', price: 200 },
+            { type: 'chance', name: 'Chance' },
+            { type: 'property', name: 'Park Place', color: '#0b4d8c', price: 350, rents: [35, 175, 500, 1100, 1300, 1500] },
+            { type: 'tax', name: 'Luxury Tax', amount: 100 },
+            { type: 'property', name: 'Boardwalk', color: '#0b4d8c', price: 400, rents: [50, 200, 600, 1400, 1700, 2000] },
+        ];
+
+        const chanceCards = [
+            { text: 'Advance to GO', moveTo: 0 },
+            { text: 'Go to Jail', jail: true },
+            { text: 'Bank pays you dividend ₹50', money: 50 },
+            { text: 'Pay poor tax ₹15', money: -15 },
+            { text: 'Advance to Boardwalk', moveTo: 39 },
+            { text: 'Take a ride to Reading Railroad', moveTo: 5 },
+            { text: 'Receive ₹150 for consultancy', money: 150 },
+            { text: 'Pay ₹100 hospital fees', money: -100 }
+        ];
+        const communityCards = [
+            { text: 'Bank error in your favor. Collect ₹200', money: 200 },
+            { text: "Doctor's fees — Pay ₹50", money: -50 },
+            { text: 'Go to Jail', jail: true },
+            { text: 'Receive ₹25 consultancy fee', money: 25 },
+            { text: 'Receive ₹100 from sale of stocks', money: 100 }
+        ];
+
+        const emojiTokens = ['🚗', '🐶', '🎩', '🏠', '⚓', '🛵', '🦄', '🎯'];
+
+        // ---------- Game state ----------
+        let board, players = [], currentIndex = 0, lastDice = null, auctionState = null, bankLoans = [], turnCounter = 0;
+        const boardEl = document.getElementById('board');
+        const logEl = document.getElementById('log');
+        const rollBtn = document.getElementById('rollBtn');
+        const endTurnBtn = document.getElementById('endTurnBtn');
+        const auctionBtn = document.getElementById('auctionBtn');
+        const diceDisplay = document.getElementById('diceDisplay');
+        const currentName = document.getElementById('currentName');
+        const playersList = document.getElementById('playersList');
+        const sellPropBtn = document.getElementById('sellPropBtn');
+
+        const fromPlayerSel = document.getElementById('fromPlayer');
+        const toPlayerSel = document.getElementById('toPlayer');
+        const offerMoneyInput = document.getElementById('offerMoney');
+        const requestMoneyInput = document.getElementById('requestMoney');
+        const offerPropsDiv = document.getElementById('offerProps');
+        const requestPropsDiv = document.getElementById('requestProps');
+        const proposeTradeBtn = document.getElementById('proposeTradeBtn');
+        const mortgageBtn = document.getElementById('mortgageBtn');
+        const unmortgageBtn = document.getElementById('unmortgageBtn');
+        const giveLoanBtn = document.getElementById('giveLoanBtn');
+
+        const loanPlayerSel = document.getElementById('loanPlayer');
+        const loanRequestAmount = document.getElementById('loanRequestAmount');
+        const loanTermSel = document.getElementById('loanTerm');
+        const requestBankLoanBtn = document.getElementById('requestBankLoanBtn');
+        const bankLoansList = document.getElementById('bankLoansList');
+
+        const openSetupBtn = document.getElementById('openSetup');
+        const modalRoot = document.getElementById('modalRoot');
+        const resetBtn = document.getElementById('resetBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        const startMoneyInput = document.getElementById('startMoney');
+
+        // ---------- Event bindings ----------
+        rollBtn.addEventListener('click', () => handleRoll(players[currentIndex]));
+        endTurnBtn.addEventListener('click', () => { endTurnBtn.disabled = true; auctionBtn.disabled = true; nextPlayer(); });
+        auctionBtn.addEventListener('click', () => { if (auctionState) openAuctionModal(); });
+
+        requestBankLoanBtn.addEventListener('click', () => {
+            const pid = parseInt(loanPlayerSel.value || '0');
+            const amt = parseInt(loanRequestAmount.value) || 0;
+            const term = parseInt(loanTermSel.value) || 5;
+            requestBankLoan(pid, amt, term);
+        });
+        proposeTradeBtn.addEventListener('click', proposeTradeFromUI);
+        mortgageBtn.addEventListener('click', mortgageSelected);
+        unmortgageBtn.addEventListener('click', unmortgageSelected);
+        giveLoanBtn.addEventListener('click', givePlayerLoan);
+        sellPropBtn.addEventListener('click', sellPropertyFlow);
+
+        openSetupBtn.addEventListener('click', openSetupModal);
+        resetBtn.addEventListener('click', () => { if (confirm('Reset the game?')) { localStorage.removeItem('monopoly_state'); init(); } });
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // ---------- Setup & init ----------
+        function init() {
+            // Load theme
+            const savedTheme = localStorage.getItem('monopoly_theme') || 'light';
+            setTheme(savedTheme);
+
+            // Load saved state if present
+            const saved = localStorage.getItem('monopoly_state');
+            if (saved) {
+                if (confirm('Load previous game state?')) {
+                    const s = JSON.parse(saved);
+                    board = s.board;
+                    players = s.players;
+                    currentIndex = s.currentIndex;
+                    bankLoans = s.bankLoans || [];
+                    auctionState = null;
+                    renderBoard();
+                    renderPlayersUI();
+                    log('Loaded saved game state.');
+                    handleAITurn(); // Trigger AI if it's their turn
+                    return;
+                } else {
+                    localStorage.removeItem('monopoly_state');
+                }
+            }
+
+            // Default start with 2 players (1 human, 1 AI)
+            setupGameWithNamesAndMoney([{ name: 'Player 1', isAI: false }, { name: 'AI Player', isAI: true }], parseInt(startMoneyInput.value) || 1500);
+        }
+
+        function setupGameWithNamesAndMoney(playersData, startMoney) {
+            board = baseBoard.map(s => Object.assign({}, s, { owner: null, houses: 0, mortgaged: false }));
+            players = playersData.map((p, i) => ({
+                id: i,
+                name: p.name || `Player ${i + 1}`,
+                pos: 0,
+                money: startMoney,
+                inJail: false,
+                jailTurns: 0,
+                owned: [],
+                loansGiven: [],
+                loansTaken: [],
+                bankrupt: false,
+                token: emojiTokens[i % emojiTokens.length],
+                isAI: p.isAI || false
+            }));
+            currentIndex = 0;
+            turnCounter = 0;
+            bankLoans = [];
+            auctionState = null;
+            renderBoard();
+            renderPlayersUI();
+            log('Game started — ' + players.length + ' players • Starting money ₹' + startMoney);
+            updateTurnUI();
+            handleAITurn(); // Trigger AI if it's their turn
+        }
+
+        // ---------- AI Logic ----------
+        function handleAITurn() {
+            const currentPlayer = players[currentIndex];
+            if (!currentPlayer.isAI || currentPlayer.bankrupt) return;
+            rollBtn.disabled = true;
+            setTimeout(() => {
+                handleRoll(currentPlayer);
+            }, 500); // Small delay for visual effect
+        }
+
+        function aiMakeDecision(plr, sq, callback) {
+            if (sq.type === 'property' || sq.type === 'railroad' || sq.type === 'utility') {
+                if (!sq.owner && plr.money >= sq.price) {
+                    setTimeout(() => {
+                        buyProperty(plr, plr.pos);
+                        callback(true);
+                    }, 500);
+                } else {
+                    setTimeout(() => {
+                        auctionState = { propertyIdx: plr.pos, bids: {} };
+                        startAuction(plr.pos);
+                        aiHandleAuction(plr);
+                        callback(false);
+                    }, 500);
+                }
+            } else {
+                setTimeout(() => callback(true), 500);
+            }
+        }
+
+        function aiHandleAuction(plr) {
+            if (!auctionState || !plr.isAI) return;
+            const sq = board[auctionState.propertyIdx];
+            const bid = Math.min(plr.money, Math.floor(sq.price * 0.8)); // AI bids 80% of price or available money
+            if (bid > 0) {
+                auctionState.bids[plr.id] = bid;
+                log(`${plr.name} bids ₹${bid}`);
+            }
+            setTimeout(finalizeAuction, 500); // Fast auction resolution
+        }
+
+        // ---------- Board rendering ----------
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            const mapIndex = buildPerimeterMap();
+            for (let r = 0; r < 11; r++) {
+                for (let c = 0; c < 11; c++) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'cell';
+                    wrapper.style.minHeight = '0';
+                    const idx = mapIndex[r][c];
+                    if (idx === null) {
+                        wrapper.style.background = 'transparent';
+                        wrapper.style.border = '0';
+                    } else {
+                        const s = board[idx];
+                        if (s.type === 'property') {
+                            const bar = document.createElement('div');
+                            bar.className = 'property-bar';
+                            bar.style.background = s.color || '#ccc';
+                            wrapper.appendChild(bar);
+                        }
+                        const title = document.createElement('div');
+                        title.style.whiteSpace = 'nowrap';
+                        title.style.overflow = 'hidden';
+                        title.style.textOverflow = 'ellipsis';
+                        title.innerHTML = `<strong style='font-size:12px'>${s.name}</strong>`;
+                        wrapper.appendChild(title);
+
+                        const info = document.createElement('div');
+                        let infoText = '';
+                        if (s.price) infoText += `₹${s.price}`;
+                        if (s.owner) infoText += ` • ${s.owner}`;
+                        if (s.mortgaged) infoText += ` • (mortgaged)`;
+                        info.innerText = infoText;
+                        info.className = 'muted-small';
+                        wrapper.appendChild(info);
+
+                        const houseRow = document.createElement('div');
+                        houseRow.className = 'houseRow';
+                        if (s.houses > 0) {
+                            if (s.houses < 5) {
+                                const row = document.createElement('div');
+                                row.className = 'houseEmoji';
+                                row.innerText = '🏠'.repeat(s.houses);
+                                houseRow.appendChild(row);
+                            } else {
+                                const row = document.createElement('div');
+                                row.className = 'houseEmoji';
+                                row.innerText = '🏨';
+                                houseRow.appendChild(row);
+                            }
+                        }
+                        wrapper.appendChild(houseRow);
+
+                        const tokens = document.createElement('div');
+                        tokens.className = 'tokens';
+                        players.forEach((p, pi) => {
+                            if (p.pos === idx && !p.bankrupt) {
+                                const t = document.createElement('div');
+                                t.className = 'token';
+                                t.style.background = tokenColor(pi);
+                                t.innerText = p.token || `P${pi + 1}`;
+                                tokens.appendChild(t);
+                            }
+                        });
+                        wrapper.appendChild(tokens);
+
+                        wrapper.addEventListener('click', () => openSquareModal(idx));
+                    }
+                    boardEl.appendChild(wrapper);
+                }
+            }
+        }
+
+        function buildPerimeterMap() {
+            const grid = Array.from({ length: 11 }, () => Array(11).fill(null));
+            const coords = [];
+            for (let c = 0; c < 11; c++) coords.push([10, c]);
+            for (let r = 9; r >= 0; r--) coords.push([r, 10]);
+            for (let c = 9; c >= 0; c--) coords.push([0, c]);
+            for (let r = 1; r <= 9; r++) coords.push([r, 0]);
+            coords.forEach((p, i) => { grid[p[0]][p[1]] = i });
+            return grid;
+        }
+
+        function tokenColor(i) {
+            const colors = ['#2b6cff', '#ff5a5a', '#2bff99', '#ffb64d', '#b86bff', '#6be1ff', '#ffd166', '#8bdc9b'];
+            return colors[i % colors.length];
+        }
+
+        // ---------- UI modals & house building ----------
+        function openSquareModal(idx) {
+            const s = board[idx];
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            const owner = s.owner;
+            const cur = players[currentIndex];
+            const canBuild = s.type === 'property' && owner === cur.name && ownsFullSet(cur, s) && s.houses < 5 && !s.mortgaged;
+            const houseCost = Math.max(10, Math.floor((s.price || 0) * 0.5));
+            modal.innerHTML = `<div class='modalCard'>
+        <h3>${s.name}</h3>
+        <div style="margin-top:8px" class="small-muted">${s.price ? ('Price: ₹' + s.price) : ''}${s.owner ? ('<br>Owner: ' + s.owner) : ''}${s.mortgaged ? '<br><em>Mortgaged</em>' : ''}</div>
+        <div style='display:flex;gap:8px;margin-top:12px;flex-wrap:wrap'>
+          <button id='modalClose' class='btn ghost small'>Close</button>
+          ${s.owner ? '<button id="modalTrade" class="btn small">Trade with owner</button>' : ''}
+          ${s.price && !s.owner && !cur.isAI ? '<button id="modalBuy" class="btn small">Buy</button>' : ''}
+          ${s.owner ? '<button id="modalMortgage" class="btn small ghost">Toggle Mortgage</button>' : ''}
+          ${canBuild ? `<button id="modalBuild" class="btn small secondary">Build House (₹${houseCost})</button>` : ''}
+        </div>
+        <div style="margin-top:10px" id="modalExtra"></div>
+      </div>`;
+            modalRoot.appendChild(modal);
+            document.getElementById('modalClose').addEventListener('click', () => modalRoot.innerHTML = '');
+            if (s.owner) {
+                const btn = document.getElementById('modalTrade');
+                if (btn) btn.addEventListener('click', () => { modalRoot.innerHTML = ''; proposeQuickTradeWithOwner(s); });
+                const mort = document.getElementById('modalMortgage');
+                if (mort) mort.addEventListener('click', () => { modalRoot.innerHTML = ''; toggleMortgage(s); });
+            } else if (!cur.isAI) {
+                const buy = document.getElementById('modalBuy');
+                if (buy) buy.addEventListener('click', () => {
+                    modalRoot.innerHTML = '';
+                    if (confirm(`Buy ${s.name} for ₹${s.price}?`)) {
+                        buyProperty(cur, idx);
+                    } else {
+                        auctionState = { propertyIdx: idx, bids: {} };
+                        startAuction(idx);
+                    }
+                });
+            }
+            if (canBuild) {
+                document.getElementById('modalBuild').addEventListener('click', () => {
+                    modalRoot.innerHTML = '';
+                    promptBuildHouse(idx);
+                });
+            }
+        }
+
+        function promptBuildHouse(idx) {
+            const s = board[idx];
+            const cur = players[currentIndex];
+            const houseCost = Math.max(10, Math.floor((s.price || 0) * 0.5));
+            if (cur.money < houseCost) {
+                alert('Insufficient funds for house');
+                return;
+            }
+            if (!ownsFullSet(cur, s)) {
+                alert('You must own the full color set to build');
+                return;
+            }
+            cur.money -= houseCost;
+            s.houses = Math.min(5, s.houses + 1);
+            log(`${cur.name} built ${s.houses === 5 ? 'a hotel' : 'a house'} on ${s.name} for ₹${houseCost}`);
+            renderBoard();
+            renderPlayersUI();
+        }
+
+        function ownsFullSet(player, square) {
+            if (!square.color) return false;
+            const set = board.filter(x => x.color === square.color);
+            return set.length && set.every(g => g.owner === player.name);
+        }
+
+        function toggleMortgage(square) {
+            const ownerIdx = players.findIndex(p => p.name === square.owner);
+            if (ownerIdx < 0) return;
+            const owner = players[ownerIdx];
+            if (!square.mortgaged) {
+                square.mortgaged = true;
+                const amt = Math.floor(square.price / 2);
+                owner.money += amt;
+                log(`${owner.name} mortgaged ${square.name} for ₹${amt}`);
+            } else {
+                const cost = Math.ceil(square.price * 0.55);
+                if (owner.money >= cost) {
+                    owner.money -= cost;
+                    square.mortgaged = false;
+                    log(`${owner.name} unmortgaged ${square.name} for ₹${cost}`);
+                } else {
+                    log(`${owner.name} cannot afford unmortgage of ₹${cost}`);
+                }
+            }
+            renderBoard();
+            renderPlayersUI();
+        }
+
+        // ---------- Setup modal ----------
+        function openSetupModal() {
+            modalRoot.innerHTML = `<div class='modal'><div class='modalCard'>
+        <h3>Game Setup</h3>
+        <div style="margin-top:8px" class="small-muted">Enter player names and select if AI. Set starting money below.</div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <div style="flex:1"><label class="muted-small">Number of players</label><input id="numPlayers" type="number" min="2" max="8" value="2"></div>
+          <div style="flex:1"><label class="muted-small">Starting money (₹)</label><input id="setupStartMoney" type="number" value="${parseInt(startMoneyInput.value) || 1500}"></div>
+        </div>
+        <div id="namesList" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="startGameBtn" class="btn">Start Game</button>
+          <button id="cancelSetup" class="btn ghost">Cancel</button>
+        </div>
+      </div></div>`;
+            const numPlayersInp = document.getElementById('numPlayers');
+            const namesList = document.getElementById('namesList');
+            function renderNames(n) {
+                namesList.innerHTML = '';
+                for (let i = 0; i < n; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'form-row';
+                    row.innerHTML = `<input data-index="${i}" type="text" placeholder="Player ${i + 1} name" value="${players[i] ? players[i].name : `Player ${i + 1}`}"><label class="muted-small">AI? <input type="checkbox" data-ai="${i}" ${players[i] && players[i].isAI ? 'checked' : ''}></label>`;
+                    namesList.appendChild(row);
+                }
+            }
+            renderNames(parseInt(numPlayersInp.value));
+            numPlayersInp.addEventListener('input', () => renderNames(Math.max(2, Math.min(8, parseInt(numPlayersInp.value) || 2))));
+            document.getElementById('cancelSetup').addEventListener('click', () => modalRoot.innerHTML = '');
+            document.getElementById('startGameBtn').addEventListener('click', () => {
+                const n = Math.max(2, Math.min(8, parseInt(numPlayersInp.value) || 2));
+                const startMoney = parseInt(document.getElementById('setupStartMoney').value) || 1500;
+                const names = Array.from(namesList.querySelectorAll('input[data-index]')).slice(0, n).map((el, i) => el.value.trim() || `Player ${i + 1}`);
+                const aiFlags = Array.from(namesList.querySelectorAll('input[data-ai]')).slice(0, n).map(el => el.checked);
+                const playersData = names.map((name, i) => ({ name, isAI: aiFlags[i] }));
+                modalRoot.innerHTML = '';
+                startMoneyInput.value = startMoney;
+                setupGameWithNamesAndMoney(playersData, startMoney);
+            });
+        }
+
+        // ---------- Players UI ----------
+        function renderPlayersUI() {
+            playersList.innerHTML = '';
+            fromPlayerSel.innerHTML = '';
+            toPlayerSel.innerHTML = '';
+            loanPlayerSel.innerHTML = '';
+            players.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = 'player-row';
+                div.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div style="width:28px;height:28px;border-radius:6px;background:${tokenColor(i)};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800">${p.token}</div><div><strong>${p.name}${p.isAI ? ' (AI)' : ''}${p.bankrupt ? ' (Bankrupt)' : ''}</strong><div class="muted-small">Pos: ${board[p.pos] ? board[p.pos].name : '—'}</div></div></div><div style="text-align:right"><div><strong>₹${p.money}</strong></div></div>`;
+                playersList.appendChild(div);
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.innerText = p.name;
+                fromPlayerSel.appendChild(opt);
+                const opt2 = document.createElement('option');
+                opt2.value = i;
+                opt2.innerText = p.name;
+                toPlayerSel.appendChild(opt2);
+                const opt3 = document.createElement('option');
+                opt3.value = i;
+                opt3.innerText = p.name;
+                loanPlayerSel.appendChild(opt3);
+            });
+            populatePropertySelects();
+            updateBankLoansUI();
+            saveState();
+        }
+
+        function populatePropertySelects() {
+            offerPropsDiv.innerHTML = '';
+            requestPropsDiv.innerHTML = '';
+            const fromIdx = parseInt(fromPlayerSel.value || '0');
+            const toIdx = parseInt(toPlayerSel.value || '0');
+            players.forEach((p, i) => {
+                const owned = board.map((s, si) => ({ s, si })).filter(x => x.s.owner === p.name);
+                if (i === fromIdx) {
+                    owned.forEach(x => {
+                        const b = document.createElement('label');
+                        b.className = 'prop-slim';
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.dataset.si = x.si;
+                        b.appendChild(cb);
+                        b.appendChild(document.createTextNode(' ' + x.s.name));
+                        offerPropsDiv.appendChild(b);
+                    });
+                }
+                if (i === toIdx) {
+                    owned.forEach(x => {
+                        const b = document.createElement('label');
+                        b.className = 'prop-slim';
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.dataset.si = x.si;
+                        b.appendChild(cb);
+                        b.appendChild(document.createTextNode(' ' + x.s.name));
+                        requestPropsDiv.appendChild(b);
+                    });
+                }
+            });
+        }
+
+        // ---------- Logging ----------
+        function log(msg) {
+            const p = document.createElement('div');
+            p.innerText = msg;
+            logEl.appendChild(p);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // ---------- Trades ----------
+        function proposeTradeFromUI() {
+            const fromIdx = parseInt(fromPlayerSel.value);
+            const toIdx = parseInt(toPlayerSel.value);
+            if (fromIdx === toIdx) {
+                alert('Select different players');
+                return;
+            }
+            const offerMoney = parseInt(offerMoneyInput.value) || 0;
+            const requestMoney = parseInt(requestMoneyInput.value) || 0;
+            const offerProps = Array.from(offerPropsDiv.querySelectorAll('input[type=checkbox]:checked')).map(cb => parseInt(cb.dataset.si));
+            const requestProps = Array.from(requestPropsDiv.querySelectorAll('input[type=checkbox]:checked')).map(cb => parseInt(cb.dataset.si));
+            const offer = { from: fromIdx, to: toIdx, offerMoney, requestMoney, offerProps, requestProps };
+            proposeTrade(offer);
+        }
+
+        function proposeTrade(offer) {
+            const from = players[offer.from], to = players[offer.to];
+            log(`${from.name} proposes trade to ${to.name}`);
+            const summary = [];
+            if (offer.offerMoney) summary.push(`gives ₹${offer.offerMoney}`);
+            if (offer.offerProps.length) summary.push(`gives props: ${offer.offerProps.map(i => board[i].name).join(',')}`);
+            if (offer.requestMoney) summary.push(`asks ₹${offer.requestMoney}`);
+            if (offer.requestProps.length) summary.push(`asks props: ${offer.requestProps.map(i => board[i].name).join(',')}`);
+            log('Offer: ' + summary.join(' • '));
+            if (to.isAI) {
+                setTimeout(() => {
+                    log(`${to.name} (AI) declines trade`);
+                }, 500);
+            } else if (confirm(`${to.name}, accept trade?\n` + summary.join('\n'))) {
+                executeTrade(offer);
+            } else {
+                log('Trade declined');
+            }
+        }
+
+        function executeTrade(offer) {
+            const a = players[offer.from], b = players[offer.to];
+            a.money -= offer.offerMoney;
+            b.money += offer.offerMoney;
+            b.money -= offer.requestMoney;
+            a.money += offer.requestMoney;
+            offer.offerProps.forEach(si => {
+                board[si].owner = b.name;
+                board[si].houses = 0;
+            });
+            offer.requestProps.forEach(si => {
+                board[si].owner = a.name;
+                board[si].houses = 0;
+            });
+            renderBoard();
+            renderPlayersUI();
+            log('Trade executed');
+        }
+
+        // ---------- Mortgage ----------
+        function mortgageSelected() {
+            const from = parseInt(fromPlayerSel.value);
+            const checkboxes = Array.from(offerPropsDiv.querySelectorAll('input[type=checkbox]:checked'));
+            if (!checkboxes.length) {
+                alert('Select properties to mortgage');
+                return;
+            }
+            checkboxes.forEach(cb => {
+                const si = parseInt(cb.dataset.si);
+                const s = board[si];
+                if (s.owner === players[from].name && !s.mortgaged) {
+                    s.mortgaged = true;
+                    const amt = Math.floor(s.price / 2);
+                    players[from].money += amt;
+                    log(`${players[from].name} mortgaged ${s.name} for ₹${amt}`);
+                }
+            });
+            renderBoard();
+            renderPlayersUI();
+        }
+
+        function unmortgageSelected() {
+            const from = parseInt(fromPlayerSel.value);
+            const checkboxes = Array.from(offerPropsDiv.querySelectorAll('input[type=checkbox]:checked'));
+            if (!checkboxes.length) {
+                alert('Select properties to unmortgage');
+                return;
+            }
+            checkboxes.forEach(cb => {
+                const si = parseInt(cb.dataset.si);
+                const s = board[si];
+                if (s.owner === players[from].name && s.mortgaged) {
+                    const cost = Math.ceil(s.price * 0.55);
+                    if (players[from].money >= cost) {
+                        players[from].money -= cost;
+                        s.mortgaged = false;
+                        log(`${players[from].name} unmortgaged ${s.name} for ₹${cost}`);
+                    } else {
+                        log(`${players[from].name} cannot afford to unmortgage ${s.name}`);
+                    }
+                }
+            });
+            renderBoard();
+            renderPlayersUI();
+        }
+
+        // ---------- Loans ----------
+        function givePlayerLoan() {
+            const from = parseInt(fromPlayerSel.value);
+            const to = parseInt(toPlayerSel.value);
+            if (from === to) {
+                alert('Select different players');
+                return;
+            }
+            const amt = parseInt(prompt('Loan amount?', '100')) || 0;
+            if (amt <= 0) return;
+            if (players[from].money < amt) {
+                alert('Lender has insufficient money');
+                return;
+            }
+            players[from].money -= amt;
+            players[to].money += amt;
+            players[from].loansGiven.push({ to, amt });
+            players[to].loansTaken.push({ from, amt });
+            log(`${players[from].name} gave loan of ₹${amt} to ${players[to].name}`);
+            renderPlayersUI();
+        }
+
+        function requestBankLoan(pid, amt, term) {
+            const player = players[pid];
+            const propVal = board.filter(s => s.owner === player.name && !s.mortgaged).reduce((s, x) => s + (x.price || 0), 0);
+            const max = Math.floor(propVal * 0.7) + 500;
+            if (amt > max) {
+                log(`${player.name} loan request ₹${amt} exceeds allowed max ₹${max}`);
+                return;
+            }
+            const interestRate = 0.10 * (term / 5);
+            const total = Math.ceil(amt * (1 + interestRate));
+            const installment = Math.ceil(total / term);
+            bankLoans.push({ playerId: pid, principal: amt, termTurns: term, turnsRemaining: term, installment, total });
+            player.money += amt;
+            log(`${player.name} received bank loan ₹${amt}, term ${term} turns, inst ₹${installment}`);
+            renderPlayersUI();
+            updateBankLoansUI();
+        }
+
+        function updateBankLoansUI() {
+            bankLoansList.innerHTML = '';
+            bankLoans.forEach(l => {
+                const p = players[l.playerId];
+                const d = document.createElement('div');
+                d.innerText = `${p.name}: ${l.turnsRemaining} turns left • inst ₹${l.installment}`;
+                bankLoansList.appendChild(d);
+            });
+        }
+
+        // ---------- Dice & movement ----------
+        function handleRoll(plr) {
+            if (plr.inJail) {
+                if (plr.money >= 50) {
+                    plr.money -= 50;
+                    plr.inJail = false;
+                    log(`${plr.name} paid ₹50 to leave jail`);
+                } else {
+                    log(`${plr.name} is in jail and cannot pay`);
+                    nextPlayer();
+                    return;
+                }
+            }
+            const d1 = rand1to6(), d2 = rand1to6();
+            lastDice = d1 + d2;
+            diceDisplay.innerText = `${d1}+${d2}=${lastDice}`;
+            log(`${plr.name} rolled ${d1} & ${d2}`);
+            movePlayerAnimation(plr, d1 + d2, () => {
+                if (d1 === d2) {
+                    log(`${plr.name} rolled doubles and may move again`);
+                    endTurnBtn.disabled = false;
+                    if (plr.isAI) setTimeout(() => handleRoll(plr), 1000); // AI rolls again on doubles
+                } else {
+                    endTurnBtn.disabled = false;
+                    if (plr.isAI) setTimeout(() => {
+                        endTurnBtn.disabled = true;
+                        auctionBtn.disabled = true;
+                        nextPlayer();
+                    }, 1000);
+                }
+            });
+        }
+
+        function movePlayerAnimation(plr, steps, cb) {
+            const start = plr.pos;
+            const path = [];
+            for (let i = 1; i <= steps; i++) path.push((plr.pos + i) % 40);
+            let i = 0;
+            function step() {
+                plr.pos = path[i];
+                renderBoard();
+                renderPlayersUI();
+                i++;
+                if (i < path.length) setTimeout(step, 120);
+                else setTimeout(() => {
+                    if (start + steps >= 40) {
+                        plr.money += 200;
+                        log(`${plr.name} passed GO and collected ₹200`);
+                    }
+                    resolveLanding(plr, cb);
+                }, 180);
+            }
+            step();
+        }
+
+        function resolveLanding(plr, cb) {
+            const sq = board[plr.pos];
+            if (!sq) return cb();
+            if (sq.type === 'property' || sq.type === 'railroad' || sq.type === 'utility') {
+                if (!sq.owner) {
+                    if (plr.isAI) {
+                        aiMakeDecision(plr, sq, () => cb());
+                    } else {
+                        if (confirm(`Buy ${sq.name} for ₹${sq.price}?`)) {
+                            buyProperty(plr, plr.pos);
+                            cb();
+                        } else {
+                            auctionState = { propertyIdx: plr.pos, bids: {} };
+                            startAuction(plr.pos);
+                            cb();
+                        }
+                    }
+                } else if (sq.owner !== plr.name) {
+                    if (sq.mortgaged) {
+                        log('No rent — property mortgaged');
+                        cb();
+                    } else {
+                        const rent = calculateRent(sq);
+                        plr.money -= rent;
+                        const owner = players.find(x => x.name === sq.owner);
+                        if (owner) owner.money += rent;
+                        log(`${plr.name} paid ₹${rent} rent to ${sq.owner}`);
+                        renderBoard();
+                        renderPlayersUI();
+                        checkBankruptcy(plr);
+                        cb();
+                    }
+                } else {
+                    cb();
+                }
+            } else if (sq.type === 'tax') {
+                plr.money -= sq.amount;
+                log(`${plr.name} paid tax ₹${sq.amount}`);
+                renderBoard();
+                renderPlayersUI();
+                checkBankruptcy(plr);
+                cb();
+            } else if (sq.type === 'chance') {
+                drawChance(plr);
+                renderBoard();
+                renderPlayersUI();
+                cb();
+            } else if (sq.type === 'community') {
+                drawCommunity(plr);
+                renderBoard();
+                renderPlayersUI();
+                cb();
+            } else if (sq.name === 'Go To Jail') {
+                plr.pos = 10;
+                plr.inJail = true;
+                log(`${plr.name} was sent to Jail`);
+                renderBoard();
+                renderPlayersUI();
+                cb();
+            } else {
+                cb();
+            }
+        }
+
+        function buyProperty(plr, idx) {
+            const s = board[idx];
+            if (plr.money >= s.price) {
+                plr.money -= s.price;
+                s.owner = plr.name;
+                s.houses = 0;
+                plr.owned.push(idx);
+                log(`${plr.name} bought ${s.name} for ₹${s.price}`);
+                renderBoard();
+                renderPlayersUI();
+            } else {
+                log(`${plr.name} cannot afford ${s.name}`);
+            }
+        }
+
+        // ---------- Auction ----------
+        function startAuction(idx) {
+            auctionState = { propertyIdx: idx, bids: {} };
+            log('Auction started for ' + board[idx].name);
+            auctionBtn.disabled = false;
+            if (players[currentIndex].isAI) {
+                aiHandleAuction(players[currentIndex]);
+            }
+        }
+
+        function openAuctionModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `<div class='modalCard'><h3>Auction: ${board[auctionState.propertyIdx].name}</h3><div style='margin-top:8px'>Current bids: ${Object.entries(auctionState.bids).map(b => players[parseInt(b[0])].name + ': ₹' + b[1]).join(', ') || 'None'}</div>
+        <div style='display:flex;gap:8px;margin-top:12px'><input id='auctionBid' type='number' placeholder='Your bid' value='${board[auctionState.propertyIdx].price}'><button id='confirmAuction' class='btn'>Place Bid</button><button id='cancelAuction' class='btn ghost'>Cancel</button></div>
+      </div>`;
+            modalRoot.appendChild(modal);
+            document.getElementById('confirmAuction').addEventListener('click', () => {
+                const v = parseInt(document.getElementById('auctionBid').value) || 0;
+                auctionState.bids[currentIndex] = v;
+                log(`${players[currentIndex].name} bids ₹${v}`);
+                modalRoot.innerHTML = '';
+            });
+            document.getElementById('cancelAuction').addEventListener('click', () => {
+                finalizeAuction();
+                modalRoot.innerHTML = '';
+            });
+        }
+
+        function finalizeAuction() {
+            let winner = null, best = 0;
+            for (const pid in auctionState.bids) {
+                const v = auctionState.bids[pid];
+                if (v > best) {
+                    best = v;
+                    winner = parseInt(pid);
+                }
+            }
+            if (winner === null || best <= 0) {
+                log('No winner');
+                auctionState = null;
+                auctionBtn.disabled = true;
+                return;
+            }
+            const prop = board[auctionState.propertyIdx];
+            const player = players[winner];
+            if (player.money >= best) {
+                player.money -= best;
+                prop.owner = player.name;
+                prop.houses = 0;
+                player.owned.push(auctionState.propertyIdx);
+                log(`${player.name} won auction for ${prop.name} at ₹${best}`);
+            } else {
+                log(`${player.name} could not pay bid`);
+            }
+            auctionState = null;
+            auctionBtn.disabled = true;
+            renderBoard();
+            renderPlayersUI();
+        }
+
+        // ---------- Rent calc ----------
+        function calculateRent(sq) {
+            if (!sq) return 0;
+            if (sq.type === 'railroad') {
+                const owner = sq.owner;
+                const count = board.filter(s => s.owner === owner && s.type === 'railroad').length;
+                return 25 * Math.pow(2, count - 1);
+            }
+            if (sq.type === 'utility') {
+                const owner = sq.owner;
+                const count = board.filter(s => s.owner === owner && s.type === 'utility').length;
+                return lastDice * (count === 2 ? 10 : 4);
+            }
+            if (sq.mortgaged) return 0;
+            if (sq.houses > 0) {
+                return sq.rents[Math.min(sq.houses, sq.rents.length - 1)];
+            }
+            const base = sq.rents ? sq.rents[0] : 0;
+            if (sq.color) {
+                const owner = sq.owner;
+                const group = board.filter(x => x.color === sq.color);
+                if (group.length && group.every(g => g.owner === owner)) return base * 2;
+            }
+            return base;
+        }
+
+        // ---------- Chance / Community ----------
+        function drawChance(plr) {
+            const card = chanceCards[Math.floor(Math.random() * chanceCards.length)];
+            applyCard(plr, card, 'Chance');
+        }
+
+        function drawCommunity(plr) {
+            const card = communityCards[Math.floor(Math.random() * communityCards.length)];
+            applyCard(plr, card, 'Community');
+        }
+
+        function applyCard(plr, card, type) {
+            log(`${plr.name} drew ${type}: ${card.text}`);
+            if (card.money) plr.money += card.money;
+            if (card.moveTo !== undefined) {
+                plr.pos = card.moveTo;
+                if (card.moveTo === 0) plr.money += 200;
+                log(`${plr.name} moved to ${board[plr.pos].name}`);
+            }
+            if (card.jail) {
+                plr.pos = 10;
+                plr.inJail = true;
+            }
+            renderBoard();
+            renderPlayersUI();
+        }
+
+        // ---------- Loan repayment process ----------
+        function processLoanInstallments(playerObj) {
+            bankLoans.filter(l => l.playerId === playerObj.id).forEach(l => {
+                if (l.turnsRemaining < l.termTurns) {
+                    if (playerObj.money >= l.installment) {
+                        playerObj.money -= l.installment;
+                        l.turnsRemaining--;
+                        log(`${playerObj.name} paid installment ₹${l.installment} (${l.turnsRemaining} left)`);
+                    } else {
+                        log(`${playerObj.name} cannot pay ₹${l.installment}, auto-mortgaging`);
+                        autoMortgageUntil(playerObj, l.installment);
+                        if (playerObj.money >= l.installment) {
+                            playerObj.money -= l.installment;
+                            l.turnsRemaining--;
+                            log(`${playerObj.name} paid installment after mortgage`);
+                        }
+                    }
+                }
+            });
+            updateBankLoansUI();
+            renderPlayersUI();
+        }
+
+        function autoMortgageUntil(playerObj, needed) {
+            const own = board.map((s, i) => ({ s, i })).filter(x => x.s.owner === playerObj.name && !x.s.mortgaged);
+            own.sort((a, b) => a.s.price - b.s.price);
+            let i = 0;
+            while (playerObj.money < needed && i < own.length) {
+                const s = own[i].s;
+                s.mortgaged = true;
+                const amt = Math.floor(s.price / 2);
+                playerObj.money += amt;
+                log(`${playerObj.name} auto-mortgaged ${s.name} for ₹${amt}`);
+                i++;
+            }
+            renderBoard();
+            renderPlayersUI();
+        }
+
+        // ---------- Selling properties ----------
+        function sellPropertyFlow() {
+            const ownerIdx = currentIndex;
+            const owner = players[ownerIdx];
+            const owned = board.map((s, i) => ({ s, i })).filter(x => x.s.owner === owner.name && !x.s.mortgaged);
+            if (!owned.length) {
+                alert('No sellable properties');
+                return;
+            }
+            const list = owned.map(o => `${o.i}: ${o.s.name} (₹${o.s.price})`).join('\n');
+            const choice = prompt('Choose property index to sell:\n' + list);
+            const si = parseInt(choice);
+            if (isNaN(si)) return;
+            startSellAuction(si);
+        }
+
+        function startSellAuction(si) {
+            auctionState = { propertyIdx: si, bids: {} };
+            log(`${players[currentIndex].name} put ${board[si].name} up for sale`);
+            auctionBtn.disabled = false;
+            if (players[currentIndex].isAI) {
+                aiHandleAuction(players[currentIndex]);
+            }
+        }
+
+        // ---------- Turn control ----------
+        function nextPlayer() {
+            turnCounter++;
+            processLoanInstallments(players[currentIndex]);
+            currentIndex = (currentIndex + 1) % players.length;
+            while (players[currentIndex].bankrupt && players.some(p => !p.bankrupt)) {
+                currentIndex = (currentIndex + 1) % players.length;
+            }
+            updateTurnUI();
+            handleAITurn();
+        }
+
+        function updateTurnUI() {
+            const cur = players[currentIndex];
+            currentName.innerText = cur.name;
+            diceDisplay.innerText = '-';
+            renderPlayersUI();
+            rollBtn.disabled = cur.isAI;
+            endTurnBtn.disabled = true;
+        }
+
+        // ---------- Utilities ----------
+        function rand1to6() {
+            return Math.floor(Math.random() * 6) + 1;
+        }
+
+        function proposeQuickTradeWithOwner(square) {
+            const owner = square.owner;
+            const ownerIdx = players.findIndex(p => p.name === owner);
+            const youIdx = currentIndex;
+            if (ownerIdx === youIdx) {
+                alert('You already own it');
+                return;
+            }
+            const price = prompt(`Offer price to ${players[ownerIdx].name} for ${square.name}:`, square.price);
+            if (!price) return;
+            const offer = {
+                from: youIdx,
+                to: ownerIdx,
+                offerMoney: parseInt(price),
+                requestMoney: 0,
+                offerProps: [],
+                requestProps: [board.indexOf(square)]
+            };
+            proposeTrade(offer);
+        }
+
+        function saveState() {
+            const snapshot = { board, players, currentIndex, bankLoans };
+            try {
+                localStorage.setItem('monopoly_state', JSON.stringify(snapshot));
+            } catch (e) { }
+        }
+
+        function checkBankruptcy(player) {
+            if (player.money < 0) {
+                player.bankrupt = true;
+                board.filter(s => s.owner === player.name).forEach(s => {
+                    s.owner = null;
+                    s.mortgaged = false;
+                    s.houses = 0;
+                });
+                log(`${player.name} is bankrupt! Properties returned to bank.`);
+                renderBoard();
+                renderPlayersUI();
+                nextPlayer();
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const next = current === 'light' ? 'dark' : 'light';
+            setTheme(next);
+        }
+
+        function setTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            localStorage.setItem('monopoly_theme', t);
+            document.getElementById('appRoot').setAttribute('data-theme', t);
+        }
+
+        // ---------- Save on unload ----------
+        window.addEventListener('beforeunload', () => saveState());
+
+        // ---------- Initialization ----------
+        init();
+
+        // Expose small helper for console debugging (optional)
+        window._monopoly = { board, players, saveState, setupGameWithNamesAndMoney };
+    </script>
+</body>
+
+</html>
