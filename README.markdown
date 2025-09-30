@@ -26,7 +26,7 @@ A sleek, interactive, and feature-rich Monopoly game built with HTML, CSS, and J
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/monopoly-modern-polished.git
+  [ git clone https://github.com/vinaypinagadi/Monopoly.git ]
    ```
 2. Open `index.html` in a web browser to start the game.
 
